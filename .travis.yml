@@ -1,0 +1,26 @@
+language: generic
+
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pundeepak/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+- docker run -e CI=true pundeepak/react-test npm test
+
+after_success:
+  - docker build -t pundeepak/multi-client ./client
+  - docker build -t pundeepak/multi-nginx ./nginx
+  - docker build -t pundeepak/multi-server ./server
+  - docker build -t pundeepak/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push to docker hub
+  - docker push pundeepak/multi-client
+  - docker push pundeepak/multi-nginx
+  - docker push pundeepak/multi-server
+  - docker push pundeepak/multi-worker
+
+
